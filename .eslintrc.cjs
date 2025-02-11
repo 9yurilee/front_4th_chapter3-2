@@ -33,6 +33,12 @@ module.exports = {
         'newlines-between': 'always',
       },
     ],
+    'prettier/prettier': [
+      'error',
+      {
+        endOfLine: 'auto', // LF/CRLF 문제 해결
+      },
+    ],
   },
   globals: {
     Set: true,
