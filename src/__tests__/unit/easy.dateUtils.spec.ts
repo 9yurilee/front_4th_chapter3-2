@@ -9,6 +9,7 @@ import {
   getWeekDates,
   getWeeksAtMonth,
   isDateInRange,
+  getRepeatEvents,
 } from '../../utils/dateUtils';
 
 describe('getDaysInMonth', () => {
@@ -296,5 +297,52 @@ describe('formatDate', () => {
   it('일이 한 자리 수일 때 앞에 0을 붙여 포맷팅한다', () => {
     const testDate = new Date('2023-12-05');
     expect(formatDate(testDate)).toBe('2023-12-05');
+  });
+});
+
+describe('repeatEvents', () => {
+  test('매일 반복 (interval=1)', () => {
+    expect(getRepeatEvents('2024-07-10', 'daily', 1)).toBe('2024-07-11');
+  });
+
+  test('매주 반복 (interval=2)', () => {
+    expect(getRepeatEvents('2024-07-10', 'weekly', 2)).toBe('2024-07-24');
+  });
+
+  test('매월 반복 (interval=1)', () => {
+    expect(getRepeatEvents('2024-07-31', 'monthly', 1)).toBe('2024-08-31');
+  });
+
+  test('매년 반복 (interval=1)', () => {
+    expect(getRepeatEvents('2024-07-10', 'yearly', 1)).toBe('2025-07-10');
+  });
+
+  test('윤년 2월 29일 처리 (매년 반복)', () => {
+    expect(getRepeatEvents('2024-02-29', 'yearly', 1)).toBe('2025-02-28');
+    expect(getRepeatEvents('2024-02-29', 'yearly', 4)).toBe('2028-02-29');
+  });
+
+  test('매월 반복 시 31일이 없는 달 처리', () => {
+    expect(getRepeatEvents('2024-01-31', 'monthly', 1)).toBe('2024-02-29');
+    expect(getRepeatEvents('2023-01-31', 'monthly', 1)).toBe('2023-02-28');
+    expect(getRepeatEvents('2024-03-31', 'monthly', 1)).toBe('2024-04-30');
+  });
+
+  test('반복 간격 (2일마다)', () => {
+    expect(getRepeatEvents('2024-07-10', 'daily', 2)).toBe('2024-07-12');
+  });
+
+  test('반복 간격 (3주마다)', () => {
+    expect(getRepeatEvents('2024-07-10', 'weekly', 3)).toBe('2024-07-31');
+  });
+
+  test('반복 간격 (2개월마다)', () => {
+    expect(getRepeatEvents('2024-07-31', 'monthly', 2)).toBe('2024-09-30');
+  });
+
+  test('반복 종료일이 적용되는지 확인', () => {
+    const nextDate = getRepeatEvents('2025-06-29', 'daily', 1);
+
+    expect(nextDate).toBe('2025-06-30');
   });
 });
