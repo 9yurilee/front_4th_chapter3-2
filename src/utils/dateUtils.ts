@@ -108,3 +108,45 @@ export function formatDate(currentDate: Date, day?: number) {
     fillZero(day ?? currentDate.getDate()),
   ].join('-');
 }
+
+/**
+ * 반복 일정
+ */
+export function getRepeatEvents(
+  startDate: string,
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly',
+  interval: number
+) {
+  const date = new Date(startDate);
+
+  if (frequency === 'daily') {
+    date.setDate(date.getDate() + interval);
+  } else if (frequency === 'weekly') {
+    date.setDate(date.getDate() + interval * 7);
+  } else if (frequency === 'monthly') {
+    const currentDaysInMonth = getDaysInMonth(date.getFullYear(), date.getMonth() + 1);
+    const isEndOfMonth = date.getDate() === currentDaysInMonth;
+
+    const targetMonth = date.getMonth() + interval;
+    date.setMonth(targetMonth);
+
+    // 새로운 달에서 말일 유지
+    const daysInNewMonth = getDaysInMonth(date.getFullYear(), date.getMonth() + 1);
+
+    if (isEndOfMonth || date.getDate() > daysInNewMonth) {
+      date.setDate(daysInNewMonth);
+    }
+  } else if (frequency === 'yearly') {
+    const newYear = date.getFullYear() + interval;
+    const isLeapYear = getDaysInMonth(newYear, 2) === 29;
+    const isFebruary = date.getMonth() === 1;
+
+    if (!isLeapYear && isFebruary && date.getDate() === 29) {
+      date.setDate(28);
+    }
+
+    date.setFullYear(newYear);
+  }
+
+  return formatDate(date);
+}
