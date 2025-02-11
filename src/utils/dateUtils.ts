@@ -126,8 +126,11 @@ export function getRepeatEvents(
   } else if (frequency === 'monthly') {
     const currentDaysInMonth = getDaysInMonth(date.getFullYear(), date.getMonth() + 1);
     const isEndOfMonth = date.getDate() === currentDaysInMonth;
-
     const targetMonth = date.getMonth() + interval;
+
+    // 날짜를 1일로 먼저 설정하여 setMonth() 호출 시 초과된 날짜로 이동하는 문제 방지
+    date.setDate(1);
+
     date.setMonth(targetMonth);
 
     // 새로운 달에서 말일 유지
