@@ -301,6 +301,7 @@ describe('formatDate', () => {
 });
 
 describe('repeatEvents', () => {
+  // 반복 유형 선택 테스트
   test('매일 반복 (interval=1)', () => {
     expect(getRepeatEvents('2024-07-10', 'daily', 1)).toBe('2024-07-11');
   });
@@ -328,6 +329,7 @@ describe('repeatEvents', () => {
     expect(getRepeatEvents('2024-03-31', 'monthly', 1)).toBe('2024-04-30');
   });
 
+  // 반복 간격 설정 테스트
   test('반복 간격 (2일마다)', () => {
     expect(getRepeatEvents('2024-07-10', 'daily', 2)).toBe('2024-07-12');
   });
@@ -340,9 +342,20 @@ describe('repeatEvents', () => {
     expect(getRepeatEvents('2024-07-31', 'monthly', 2)).toBe('2024-09-30');
   });
 
+  // 반복 종료 테스트
   test('반복 종료일이 적용되는지 확인', () => {
     const nextDate = getRepeatEvents('2025-06-29', 'daily', 1);
 
     expect(nextDate).toBe('2025-06-30');
+  });
+
+  test('특정 횟수만 반복되는지 확인', () => {
+    let date = '2024-07-10';
+
+    for (let i = 0; i < 5; i++) {
+      date = getRepeatEvents(date, 'weekly', 1);
+    }
+
+    expect(date).toBe('2024-08-14');
   });
 });
