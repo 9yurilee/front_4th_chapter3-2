@@ -3,7 +3,6 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../setupTests';
 import { Event } from '../types';
 
-// ! Hard 여기 제공 안함
 export const setupMockHandlerCreation = (initEvents = [] as Event[]) => {
   const mockEvents: Event[] = [...initEvents];
 
@@ -11,11 +10,24 @@ export const setupMockHandlerCreation = (initEvents = [] as Event[]) => {
     http.get('/api/events', () => {
       return HttpResponse.json({ events: mockEvents });
     }),
+
     http.post('/api/events', async ({ request }) => {
       const newEvent = (await request.json()) as Event;
-      newEvent.id = String(mockEvents.length + 1); // 간단한 ID 생성
+      newEvent.id = String(mockEvents.length + 1);
       mockEvents.push(newEvent);
       return HttpResponse.json(newEvent, { status: 201 });
+    }),
+
+    http.post('/api/events-list', async ({ request }) => {
+      const { events: newEvents } = (await request.json()) as { events: Event[] };
+      const addedEvents = newEvents.map((event) => ({
+        ...event,
+        id: String(mockEvents.length + 1),
+      }));
+
+      mockEvents.push(...addedEvents);
+
+      return HttpResponse.json(addedEvents, { status: 201 });
     })
   );
 };
@@ -52,13 +64,31 @@ export const setupMockHandlerUpdating = () => {
     http.get('/api/events', () => {
       return HttpResponse.json({ events: mockEvents });
     }),
+
     http.put('/api/events/:id', async ({ params, request }) => {
       const { id } = params;
       const updatedEvent = (await request.json()) as Event;
       const index = mockEvents.findIndex((event) => event.id === id);
 
-      mockEvents[index] = { ...mockEvents[index], ...updatedEvent };
-      return HttpResponse.json(mockEvents[index]);
+      if (index !== -1) {
+        mockEvents[index] = { ...mockEvents[index], ...updatedEvent };
+        return HttpResponse.json(mockEvents[index]);
+      }
+
+      return new HttpResponse(null, { status: 404 });
+    }),
+
+    http.put('/api/events-list', async ({ request }) => {
+      const { events: updatedEvents } = (await request.json()) as { events: Event[] };
+
+      updatedEvents.forEach((updatedEvent) => {
+        const index = mockEvents.findIndex((event) => event.id === updatedEvent.id);
+        if (index !== -1) {
+          mockEvents[index] = { ...mockEvents[index], ...updatedEvent };
+        }
+      });
+
+      return HttpResponse.json(mockEvents, { status: 200 });
     })
   );
 };
@@ -83,12 +113,24 @@ export const setupMockHandlerDeletion = () => {
     http.get('/api/events', () => {
       return HttpResponse.json({ events: mockEvents });
     }),
+
     http.delete('/api/events/:id', ({ params }) => {
       const { id } = params;
       const index = mockEvents.findIndex((event) => event.id === id);
 
-      mockEvents.splice(index, 1);
-      return new HttpResponse(null, { status: 204 });
+      if (index !== -1) {
+        mockEvents.splice(index, 1);
+        return new HttpResponse(null, { status: 204 });
+      }
+
+      return new HttpResponse(null, { status: 404 });
+    }),
+
+    http.delete('/api/events-list', async ({ request }) => {
+      const { eventIds } = (await request.json()) as { eventIds: string[] };
+      const remainingEvents = mockEvents.filter((event) => !eventIds.includes(event.id));
+
+      return HttpResponse.json({ events: remainingEvents }, { status: 204 });
     })
   );
 };

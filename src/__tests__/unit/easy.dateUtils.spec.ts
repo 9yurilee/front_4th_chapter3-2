@@ -1,3 +1,4 @@
+import { setupMockHandlerCreation } from '../../__mocks__/handlersUtils';
 import { Event } from '../../types';
 import {
   fillZero,
@@ -301,21 +302,29 @@ describe('formatDate', () => {
 });
 
 describe('repeatEvents', () => {
-  // 반복 유형 선택 테스트
+  beforeEach(() => {
+    setupMockHandlerCreation(); // ✅ 반복 일정 핸들러 설정
+  });
+
+  // 📌 반복 유형 선택 테스트
   test('매일 반복 (interval=1)', () => {
-    expect(getRepeatEvents('2024-07-10', 'daily', 1)).toBe('2024-07-11');
+    const result = getRepeatEvents('2024-07-10', 'daily', 1);
+    expect(result).toBe('2024-07-11');
   });
 
   test('매주 반복 (interval=2)', () => {
-    expect(getRepeatEvents('2024-07-10', 'weekly', 2)).toBe('2024-07-24');
+    const result = getRepeatEvents('2024-07-10', 'weekly', 2);
+    expect(result).toBe('2024-07-24');
   });
 
   test('매월 반복 (interval=1)', () => {
-    expect(getRepeatEvents('2024-07-31', 'monthly', 1)).toBe('2024-08-31');
+    const result = getRepeatEvents('2024-07-31', 'monthly', 1);
+    expect(result).toBe('2024-08-31');
   });
 
   test('매년 반복 (interval=1)', () => {
-    expect(getRepeatEvents('2024-07-10', 'yearly', 1)).toBe('2025-07-10');
+    const result = getRepeatEvents('2024-07-10', 'yearly', 1);
+    expect(result).toBe('2025-07-10');
   });
 
   test('윤년 2월 29일 처리 (매년 반복)', () => {
@@ -324,12 +333,12 @@ describe('repeatEvents', () => {
   });
 
   test('매월 반복 시 31일이 없는 달 처리', () => {
-    expect(getRepeatEvents('2024-01-31', 'monthly', 1)).toBe('2024-02-29');
-    expect(getRepeatEvents('2023-01-31', 'monthly', 1)).toBe('2023-02-28');
+    expect(getRepeatEvents('2024-01-31', 'monthly', 1)).toBe('2024-02-29'); // 윤년
+    expect(getRepeatEvents('2023-01-31', 'monthly', 1)).toBe('2023-02-28'); // 평년
     expect(getRepeatEvents('2024-03-31', 'monthly', 1)).toBe('2024-04-30');
   });
 
-  // 반복 간격 설정 테스트
+  // 📌 반복 간격 설정 테스트
   test('반복 간격 (2일마다)', () => {
     expect(getRepeatEvents('2024-07-10', 'daily', 2)).toBe('2024-07-12');
   });
@@ -342,11 +351,10 @@ describe('repeatEvents', () => {
     expect(getRepeatEvents('2024-07-31', 'monthly', 2)).toBe('2024-09-30');
   });
 
-  // 반복 종료 테스트
+  // 📌 반복 종료 테스트
   test('반복 종료일이 적용되는지 확인', () => {
     const nextDate = getRepeatEvents('2025-06-29', 'daily', 1);
-
-    expect(nextDate).toBe('2025-06-30');
+    expect(nextDate).toBe('2025-06-30'); // 종료일까지만 반복됨
   });
 
   test('특정 횟수만 반복되는지 확인', () => {
@@ -356,6 +364,6 @@ describe('repeatEvents', () => {
       date = getRepeatEvents(date, 'weekly', 1);
     }
 
-    expect(date).toBe('2024-08-14');
+    expect(date).toBe('2024-08-14'); // 5주 후의 날짜
   });
 });
