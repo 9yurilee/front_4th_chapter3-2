@@ -1,5 +1,5 @@
 import { useToast } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Event, EventForm } from '../types';
 
@@ -7,7 +7,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
   const toast = useToast();
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const response = await fetch('/api/events');
       if (!response.ok) {
@@ -25,7 +25,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
         isClosable: true,
       });
     }
-  };
+  }, [toast]);
 
   const saveEvent = async (eventData: Event | EventForm) => {
     try {
@@ -111,18 +111,18 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
-  async function init() {
+  const init = useCallback(async () => {
     await fetchEvents();
     toast({
       title: '일정 로딩 완료!',
       status: 'info',
       duration: 1000,
     });
-  }
+  }, [fetchEvents, toast]);
 
   useEffect(() => {
     init();
-  }, []);
+  }, [init]);
 
   return { events, fetchEvents, saveEvent, deleteEvent };
 };
